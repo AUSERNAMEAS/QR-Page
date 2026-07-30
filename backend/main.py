@@ -4,7 +4,7 @@ from enum import Enum
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pymongo.database import Database
@@ -15,8 +15,10 @@ from qr_service import generate_qr_base64
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 SCAN_BASE_URL = os.getenv("SCAN_BASE_URL", "http://localhost:5173").rstrip("/")
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "MashaKujou1@")
 
 app = FastAPI(title="QR Kit Generator")
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,7 +45,14 @@ class CodigoResponse(BaseModel):
 
 
 @app.post("/api/codigos", response_model=CodigoResponse)
-def crear_codigo(payload: CodigoRequest, db: Database = Depends(get_db)):
+def crear_codigo(
+    payload: CodigoRequest,
+    db: Database = Depends(get_db),
+    x_admin_token: str = Header(None)
+):
+    if not x_admin_token or x_admin_token != ADMIN_TOKEN:
+        raise HTTPException(status_code=401, detail="No autorizado: Token incorrecto")
+
     unique_id = str(uuid.uuid4())
     db.codigos.insert_one({"_id": unique_id, "registrado": False})
 

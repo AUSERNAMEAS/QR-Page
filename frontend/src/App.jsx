@@ -14,10 +14,16 @@ function App() {
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
 
+  // Password / Admin Token state
+  const [adminToken, setAdminToken] = useState("");
+  const [tokenInput, setTokenInput] = useState("");
+
   // State for QR Scanner (new flow)
   const [scanLoading, setScanLoading] = useState(true);
   const [scanError, setScanError] = useState("");
   const [scanResult, setScanResult] = useState(null);
+
+  const isGeneratorRoute = path === "/generadorDeQr3s";
 
   // Scan Code Effect
   useEffect(() => {
@@ -65,11 +71,16 @@ function App() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Admin-Token": adminToken,
         },
         body: JSON.stringify({ kit }),
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setAdminToken(""); // Clear the incorrect token
+          throw new Error("Contraseña incorrecta. Por favor, intente de nuevo.");
+        }
         const message = await response.text();
         throw new Error(message || "No se pudo crear el codigo");
       }
@@ -144,51 +155,109 @@ function App() {
     );
   }
 
-  // View 2: QR Generator Flow (Original)
-  return (
-    <div className="app">
-      <main className="card">
-        <h1>QR Kit Generator</h1>
-        <p className="subtitle">Selecciona un kit y genera un codigo QR unico</p>
+  // View 2: QR Generator Flow (Admin Route)
+  if (isGeneratorRoute) {
+    if (!adminToken) {
+      return (
+        <div className="app">
+          <main className="card">
+            <h1>Acceso Administrador</h1>
+            <p className="subtitle">Introduce la contraseña para generar códigos QR</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setAdminToken(tokenInput);
+              }}
+              style={{ width: "100%", display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1rem" }}
+            >
+              <input
+                type="password"
+                placeholder="Contraseña"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                style={{
+                  padding: "0.8rem",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                  fontSize: "1rem",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  backgroundColor: "var(--bg-card)",
+                  color: "var(--text-color)"
+                }}
+              />
+              <button type="submit" className="create-button" style={{ width: "100%" }}>
+                Continuar
+              </button>
+            </form>
+            {error && <p className="error" style={{ marginTop: "1rem" }}>{error}</p>}
+          </main>
+        </div>
+      );
+    }
 
-        <section className="kit-selector">
-          <label className="kit-option">
-            <input
-              type="radio"
-              name="kit"
-              value="KIT1"
-              checked={kit === "KIT1"}
-              onChange={(e) => setKit(e.target.value)}
-            />
-            <span>KIT1</span>
-          </label>
-          <label className="kit-option">
-            <input
-              type="radio"
-              name="kit"
-              value="KIT2"
-              checked={kit === "KIT2"}
-              onChange={(e) => setKit(e.target.value)}
-            />
-            <span>KIT2</span>
-          </label>
-        </section>
+    return (
+      <div className="app">
+        <main className="card">
+          <h1>Generador de QR</h1>
+          <p className="subtitle">Selecciona un kit y genera un codigo QR unico</p>
 
-        <button className="create-button" onClick={handleCreateCode} disabled={loading}>
-          {loading ? "Creando..." : "Crear codigo"}
-        </button>
-
-        {error && <p className="error">{error}</p>}
-
-        {result && (
-          <section className="result animate-scale-up">
-            <img src={result.qr_image} alt={`QR code for ${kit}`} />
-            <p className="label">ID unico</p>
-            <p className="value">{result.id}</p>
-            <p className="label">URL del codigo</p>
-            <p className="value url">{result.url}</p>
+          <section className="kit-selector">
+            <label className="kit-option">
+              <input
+                type="radio"
+                name="kit"
+                value="KIT1"
+                checked={kit === "KIT1"}
+                onChange={(e) => setKit(e.target.value)}
+              />
+              <span>KIT1</span>
+            </label>
+            <label className="kit-option">
+              <input
+                type="radio"
+                name="kit"
+                value="KIT2"
+                checked={kit === "KIT2"}
+                onChange={(e) => setKit(e.target.value)}
+              />
+              <span>KIT2</span>
+            </label>
           </section>
-        )}
+
+          <button className="create-button" onClick={handleCreateCode} disabled={loading}>
+            {loading ? "Creando..." : "Crear codigo"}
+          </button>
+
+          {error && <p className="error">{error}</p>}
+
+          {result && (
+            <section className="result animate-scale-up">
+              <img src={result.qr_image} alt={`QR code for ${kit}`} />
+              <p className="label">ID unico</p>
+              <p className="value">{result.id}</p>
+              <p className="label">URL del codigo</p>
+              <p className="value url">{result.url}</p>
+            </section>
+          )}
+        </main>
+      </div>
+    );
+  }
+
+  // View 3: Default/Root landing page
+  return (
+    <div className="app scan-page">
+      <main className="card scan-card">
+        <div className="img-container animate-fade-in">
+          <img src="/qr_header_badge.png" alt="Verification" className="header-image" />
+        </div>
+        <div className="status-container loading" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <h2 className="status-title" style={{ color: "var(--text-color)", fontSize: "1.5rem" }}>Sistema de Accesos</h2>
+          <p className="status-desc" style={{ color: "#666", fontSize: "0.95rem", lineHeight: "1.4" }}>
+            Por favor, escanee un código QR válido para validar su ingreso.
+          </p>
+        </div>
       </main>
     </div>
   );
