@@ -14,7 +14,7 @@ from qr_service import generate_qr_base64
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-SCAN_BASE_URL = os.getenv("SCAN_BASE_URL", "http://localhost:5173")
+SCAN_BASE_URL = os.getenv("SCAN_BASE_URL", "http://localhost:5173").rstrip("/")
 
 app = FastAPI(title="QR Kit Generator")
 
