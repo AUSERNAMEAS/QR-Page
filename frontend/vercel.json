@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://qr-page-5qsf.onrender.com/api/:path*"
+    },
+    {
+      "source": "/((?!api|assets|favicon|qr_header_badge).*)",
+      "destination": "/index.html"
     }
   ]
 }
