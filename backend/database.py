@@ -1,13 +1,14 @@
 import os
 from pathlib import Path
 
+import certifi
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
-client = MongoClient(MONGODB_URI)
+client = MongoClient(MONGODB_URI, tlsCAFile=certifi.where())
 db = client["qrcodes_db"]
 
 
