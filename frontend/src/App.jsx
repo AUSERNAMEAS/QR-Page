@@ -104,9 +104,6 @@ function App() {
               <div className="badge-status error-badge">✕</div>
               <h2 className="status-title error-text">Error de Verificación</h2>
               <p className="status-desc">{scanError}</p>
-              <button className="back-button" onClick={() => (window.location.href = "/")}>
-                Ir al Generador
-              </button>
             </div>
           )}
 
@@ -140,10 +137,6 @@ function App() {
                   <span className="info-value code-highlight">{scanId}</span>
                 </div>
               </div>
-
-              <button className="back-button" onClick={() => (window.location.href = "/")}>
-                Volver al Inicio
-              </button>
             </div>
           )}
         </main>

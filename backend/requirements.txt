@@ -1,5 +1,6 @@
 fastapi
 uvicorn[standard]
-sqlalchemy
+pymongo
+dnspython
 qrcode[pil]
 python-dotenv

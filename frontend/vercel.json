@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://qr-page-5qsf.onrender.com/api/:path*"
+    }
+  ]
+}
