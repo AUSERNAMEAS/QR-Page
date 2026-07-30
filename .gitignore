@@ -1,0 +1,20 @@
+# Dependency directories
+node_modules/
+frontend/node_modules/
+backend/__pycache__/
+*.pyc
+
+# Production/build outputs
+frontend/dist/
+dist/
+
+# Local env files
+.env
+.env.local
+
+# Databases
+backend/qrcodes.db
+
+# OS files
+.DS_Store
+Thumbs.db
