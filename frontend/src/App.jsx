@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import kit1Template from "./images/kit1_template.jpg";
+import kit2Template from "./images/kit2_template.jpg";
+import logoImg from "./images/logo.jpg";
 
 function App() {
   // Parse simple URL routing: /scan/:kit/:id
@@ -13,6 +16,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+  const [ticketDataUrl, setTicketDataUrl] = useState(null);
+  const [combining, setCombining] = useState(false);
 
   // Password / Admin Token state
   const [adminToken, setAdminToken] = useState("");
@@ -94,13 +99,70 @@ function App() {
     }
   }
 
+  // Effect to generate combined ticket image (Template + QR)
+  useEffect(() => {
+    if (!result) {
+      setTicketDataUrl(null);
+      return;
+    }
+
+    setCombining(true);
+    const canvas = document.createElement("canvas");
+    canvas.width = 826;
+    canvas.height = 1299;
+    const ctx = canvas.getContext("2d");
+
+    const templateImg = new Image();
+    templateImg.src = kit === "KIT1" ? kit1Template : kit2Template;
+    
+    templateImg.onload = () => {
+      // Draw template
+      ctx.drawImage(templateImg, 0, 0, 826, 1299);
+
+      // Draw QR code
+      const qrImg = new Image();
+      qrImg.src = result.qr_image;
+      qrImg.onload = () => {
+        // Draw QR at X=70, Y=266, Size=673x673 to fill the central placeholder
+        ctx.drawImage(qrImg, 70, 266, 673, 673);
+        
+        try {
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+          setTicketDataUrl(dataUrl);
+        } catch (e) {
+          console.error("Failed to generate ticket image:", e);
+        } finally {
+          setCombining(false);
+        }
+      };
+      qrImg.onerror = () => {
+        console.error("Failed to load QR image for ticket.");
+        setCombining(false);
+      };
+    };
+    templateImg.onerror = () => {
+      console.error("Failed to load template image.");
+      setCombining(false);
+    };
+  }, [result, kit]);
+
+  const handleDownload = () => {
+    if (!ticketDataUrl) return;
+    const link = document.createElement("a");
+    link.href = ticketDataUrl;
+    link.download = `ticket_${kit}_${result.id}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // View 1: Scanning Flow
   if (isScanning) {
     return (
       <div className="app scan-page">
         <main className="card scan-card">
           <div className="img-container animate-fade-in">
-            <img src="/qr_header_badge.png" alt="Verification" className="header-image" />
+            <img src={logoImg} alt="Verification" className="header-image" />
           </div>
 
           {scanLoading && (
@@ -233,10 +295,27 @@ function App() {
 
           {result && (
             <section className="result animate-scale-up">
-              <img src={result.qr_image} alt={`QR code for ${kit}`} />
-              <p className="label">ID unico</p>
+              <div className="ticket-preview-wrapper">
+                {combining ? (
+                  <div className="combining-loader">
+                    <div className="spinner"></div>
+                    <p>Generando ticket...</p>
+                  </div>
+                ) : ticketDataUrl ? (
+                  <div className="ticket-card-container">
+                    <img src={ticketDataUrl} alt={`Ticket for ${kit}`} className="ticket-preview-img" />
+                    <button className="download-button" onClick={handleDownload}>
+                      <span className="download-icon">📥</span> Descargar Ticket
+                    </button>
+                  </div>
+                ) : (
+                  <img src={result.qr_image} alt={`QR code for ${kit}`} />
+                )}
+              </div>
+              
+              <p className="label">ID único</p>
               <p className="value">{result.id}</p>
-              <p className="label">URL del codigo</p>
+              <p className="label">URL del código</p>
               <p className="value url">{result.url}</p>
             </section>
           )}
@@ -250,7 +329,7 @@ function App() {
     <div className="app scan-page">
       <main className="card scan-card">
         <div className="img-container animate-fade-in">
-          <img src="/qr_header_badge.png" alt="Verification" className="header-image" />
+          <img src={logoImg} alt="Verification" className="header-image" />
         </div>
         <div className="status-container loading" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           <h2 className="status-title" style={{ color: "var(--text-color)", fontSize: "1.5rem" }}>Sistema de Accesos</h2>
