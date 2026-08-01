@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import kit1Template from "./images/kit1_template.jpg";
 import kit2Template from "./images/kit2_template.jpg";
-import logoImg from "./images/logo.jpg";
+import logoImg from "./images/logo.jpeg";
 
 function App() {
   // Parse simple URL routing: /scan/:kit/:id
@@ -114,7 +114,7 @@ function App() {
 
     const templateImg = new Image();
     templateImg.src = kit === "KIT1" ? kit1Template : kit2Template;
-    
+
     templateImg.onload = () => {
       // Draw template
       ctx.drawImage(templateImg, 0, 0, 826, 1299);
@@ -125,7 +125,7 @@ function App() {
       qrImg.onload = () => {
         // Draw QR at X=70, Y=266, Size=673x673 to fill the central placeholder
         ctx.drawImage(qrImg, 70, 266, 673, 673);
-        
+
         try {
           const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
           setTicketDataUrl(dataUrl);
@@ -182,9 +182,8 @@ function App() {
 
           {scanResult && (
             <div
-              className={`status-container animate-scale-up ${
-                scanResult.registrado_previo ? "already-registered" : "success"
-              }`}
+              className={`status-container animate-scale-up ${scanResult.registrado_previo ? "already-registered" : "success"
+                }`}
             >
               {!scanResult.registrado_previo ? (
                 <>
@@ -237,16 +236,7 @@ function App() {
                 placeholder="Contraseña"
                 value={tokenInput}
                 onChange={(e) => setTokenInput(e.target.value)}
-                style={{
-                  padding: "0.8rem",
-                  borderRadius: "8px",
-                  border: "1px solid #ccc",
-                  fontSize: "1rem",
-                  width: "100%",
-                  boxSizing: "border-box",
-                  backgroundColor: "var(--bg-card)",
-                  color: "var(--text-color)"
-                }}
+                className="admin-input"
               />
               <button type="submit" className="create-button" style={{ width: "100%" }}>
                 Continuar
@@ -312,7 +302,7 @@ function App() {
                   <img src={result.qr_image} alt={`QR code for ${kit}`} />
                 )}
               </div>
-              
+
               <p className="label">ID único</p>
               <p className="value">{result.id}</p>
               <p className="label">URL del código</p>
