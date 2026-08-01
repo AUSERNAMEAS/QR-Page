@@ -85,3 +85,14 @@ def registrar_escaneo(id: str, db: Database = Depends(get_db)):
         "registrado": registrado_actual
     }
 
+
+@app.get("/health")
+def health_check(db: Database = Depends(get_db)):
+    try:
+        # Ping the database to ensure connection is alive
+        db.command("ping")
+        return {"status": "ok", "database": "connected"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database connection error: {str(e)}")
+
+
